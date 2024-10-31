@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: inventory-postgres
+    environment:
+      POSTGRES_USER: inventory
+      POSTGRES_PASSWORD: inventory123
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ~/docker/volumes/inventory_postgres_data:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:4
+    container_name: inventory-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ~/docker/volumes/inventory_mongo_data:/data/db
+
+volumes:
+  inventory_postgres_data:
+  inventory_mongo_data:
