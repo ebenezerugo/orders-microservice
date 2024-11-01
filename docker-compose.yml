@@ -21,6 +21,22 @@ services:
     volumes:
       - ~/docker/volumes/inventory_mongo_data:/data/db
 
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      # Only will build development stage from our dockerfile
+      target: development
+    # Run a command against the development stage of the image
+    command: npm run start:dev
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+      - mongo
+    env_file:
+      - .env.docker
+
 volumes:
   inventory_postgres_data:
   inventory_mongo_data:

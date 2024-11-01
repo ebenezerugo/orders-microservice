@@ -55,10 +55,15 @@ export type MongoConfig = {
   url: string;
 };
 
+export type TaxConfig = {
+  url: string;
+};
+
 export type AllConfigType = {
   app: AppConfig;
   database: DatabaseConfig;
   auth: AuthConfig;
   mail: MailConfig;
   mongo: MongoConfig;
+  tax: TaxConfig;
 };

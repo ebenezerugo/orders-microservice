@@ -7,15 +7,13 @@
   "license": "UNLICENSED",
   "scripts": {
     "typeorm": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "entity:create": "npm run typeorm -- entity:create src/modules/academic/notices/entities/notice.entity",
-    "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate initials",
-    "migration:create": "npm run typeorm -- migration:create join-table-for-class-and-notice",
-    "migration:show": "npm run typeorm -- migration:show --dataSource=src/database/data-source.ts",
+    "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate",
+    "migration:create": "npm run typeorm -- migration:create",
     "migration:run": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:run",
     "migration:revert": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:revert",
     "schema:drop": "npm run typeorm -- --dataSource=src/database/data-source.ts schema:drop",
     "seed:run": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:run",
-    "seed:create": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:create --name create-parent",
+    "seed:create": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm-extension/bin/cli.cjs seed:create",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -28,7 +26,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "compodoc": "npx compodoc -p tsconfig.json -s",
+    "compodoc:serve": "npx compodoc -p tsconfig.json -s -r 8080"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -50,9 +50,11 @@
     "rimraf": "^6.0.1",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "typeorm-extension": "^3.6.2"
   },
   "devDependencies": {
+    "@compodoc/compodoc": "^1.1.26",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

@@ -1,11 +1,4 @@
-import {
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsString } from 'class-validator';
 import { registerAs } from '@nestjs/config';
 import { validateConfig } from '@common/validators';
 import { MongoConfig } from '@config/config.type';
