@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectModel } from '@nestjs/mongoose';
@@ -33,18 +33,27 @@ export class OrdersService {
    * @returns The created order as a DTO.
    */
   async createOrder(createOrderDto: CreateOrderDto) {
-    const orderEntity = this.orderRepository.create(createOrderDto);
-    const order = await this.orderRepository.save(orderEntity);
-    await this.orderModel.create(createOrderDto);
-    this.taxService
-      .logTaxData(createOrderDto)
-      .then((response) => {
-        this.logger.log('Tax data logged', response);
-      })
-      .catch((error) => {
-        this.logger.error('Error logging tax data', error);
-      });
-    return OrderMapper.toDto(order);
+    const queryRunner =
+      this.orderRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const orderEntity = this.orderRepository.create(createOrderDto);
+      const order = await queryRunner.manager.save(orderEntity);
+      await this.orderModel.create(createOrderDto);
+
+      await this.taxService.logTaxData(createOrderDto);
+      await queryRunner.commitTransaction();
+
+      return OrderMapper.toDto(order);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error('Error creating order', error);
+      throw new InternalServerErrorException('Error creating order');
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   /**
@@ -53,16 +62,21 @@ export class OrdersService {
    * @returns An object containing the total number of orders and the total amount.
    */
   async getOrderDetails(businessId: string) {
-    const totalOrders = await this.orderRepository.count({
-      where: { businessId },
-    });
-    const totalAmount = await this.orderRepository
-      .createQueryBuilder()
-      .select('SUM(amount)', 'sum')
-      .where('business_id = :businessId', { businessId })
-      .getRawOne();
+    try {
+      const totalOrders = await this.orderRepository.count({
+        where: { businessId },
+      });
+      const totalAmount = await this.orderRepository
+        .createQueryBuilder()
+        .select('SUM(amount)', 'sum')
+        .where('business_id = :businessId', { businessId })
+        .getRawOne();
 
-    return { totalOrders, totalAmount };
+      return { totalOrders, totalAmount };
+    } catch (error) {
+      this.logger.error('Error retrieving order details', error);
+      throw new InternalServerErrorException('Error retrieving order details');
+    }
   }
 
   /**
@@ -71,7 +85,12 @@ export class OrdersService {
    * @returns An object containing the credit score.
    */
   async calculateCreditScore(businessId: string) {
-    const orders = await this.orderModel.find({ businessId }).exec();
-    return { score: Math.min(100, orders.length * 10) };
+    try {
+      const orders = await this.orderModel.find({ businessId }).exec();
+      return { score: Math.min(100, orders.length * 10) };
+    } catch (error) {
+      this.logger.error('Error calculating credit score', error);
+      throw new InternalServerErrorException('Error calculating credit score');
+    }
   }
 }
