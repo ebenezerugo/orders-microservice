@@ -82,7 +82,17 @@
                <div class="content getting-started">
                    <div class="content-data">
 
-<h2>Inventory Management System</h2>
+<h1>Inventory Management System</h1>
+<h2>Sales Microservice</h2>
+<p>The Sales Microservice is a dedicated service within the Inventory Management System that handles sales order management, business credit scoring, and tax compliance for registered businesses.</p>
+<hr>
+<h2>Features</h2>
+<ul>
+<li><strong>Order Management</strong>: Creates and stores orders from department heads in Postgres and MongoDB.</li>
+<li><strong>Credit Score Calculation</strong>: Calculates a credit score based on the business&#39;s transaction history.</li>
+<li><strong>Tax Compliance</strong>: Logs sales transactions to an external tax authority API for regulatory compliance.</li>
+</ul>
+<hr>
 <h2>Project setup</h2>
 <b>Example :</b><div><pre class="line-numbers"><code class="language-bash">$ npm install</code></pre></div><h2>Compile and run the project</h2>
 <b>Example :</b><div><pre class="line-numbers"><code class="language-bash"># development
@@ -124,28 +134,74 @@ $ npm run test
 $ npm run test:e2e
 
 # test coverage
-$ npm run test:cov</code></pre></div><h2>Resources</h2>
-<p>Check out a few resources that may come in handy when working with NestJS:</p>
+$ npm run test:cov</code></pre></div><h2>Docker</h2>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-none"># Run the docker-compose file
+$ docker-compose up</code></pre></div><h2>API Documentation</h2>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-none"># Swagger UI
+http://localhost:3000/api/v1.0/swagger
+</code></pre></div><h2>API Endpoints</h2>
+<h3>Create Order</h3>
 <ul>
-<li>Visit the <a href="https://docs.nestjs.com">NestJS Documentation</a> to learn more about the framework.</li>
-<li>For questions and support, please visit our <a href="https://discord.gg/G7Qnnhy">Discord channel</a>.</li>
-<li>To dive deeper and get more hands-on experience, check out our official video <a href="https://courses.nestjs.com/">courses</a>.</li>
-<li>Visualize your application graph and interact with the NestJS application in real-time using <a href="https://devtools.nestjs.com">NestJS Devtools</a>.</li>
-<li>Need help with your project (part-time to full-time)? Check out our official <a href="https://enterprise.nestjs.com">enterprise support</a>.</li>
-<li>To stay in the loop and get updates, follow us on <a href="https://x.com/nestframework">X</a> and <a href="https://linkedin.com/company/nestjs">LinkedIn</a>.</li>
-<li>Looking for a job, or have a job to offer? Check out our official <a href="https://jobs.nestjs.com">Jobs board</a>.</li>
+<li><strong>POST</strong> <code>/orders</code><ul>
+<li><strong>Description</strong>: Registers a new order for a business.</li>
+<li><strong>Request Body</strong>:<b>Example :</b><div><pre class="line-numbers"><code class="language-json">{
+  &quot;businessId&quot;: &quot;string&quot;,
+  &quot;departmentId&quot;: &quot;string&quot;,
+  &quot;amount&quot;: &quot;decimal&quot;,
+  &quot;status&quot;: &quot;string&quot;
+}</code></pre></div></li>
+<li><strong>Response</strong>: Confirmation of order creation.</li>
 </ul>
-<h2>Support</h2>
-<p>Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you&#39;d like to join them, please <a href="https://docs.nestjs.com/support">read more here</a>.</p>
-<h2>Stay in touch</h2>
+</li>
+</ul>
+<h3>Retrieve Order Details</h3>
 <ul>
-<li>Author - <a href="https://twitter.com/kammysliwiec">Kamil Myśliwiec</a></li>
-<li>Website - <a href="https://nestjs.com/">https://nestjs.com</a></li>
-<li>Twitter - <a href="https://twitter.com/nestframework">@nestframework</a></li>
+<li><strong>GET</strong> <code>/orders/:businessId/details</code><ul>
+<li><strong>Description</strong>: Retrieves total order count and amount for a specified business.</li>
+<li><strong>Response</strong>:<b>Example :</b><div><pre class="line-numbers"><code class="language-json">{
+  &quot;totalOrders&quot;: &quot;number&quot;,
+  &quot;totalAmount&quot;: &quot;decimal&quot;
+}</code></pre></div></li>
 </ul>
-<h2>License</h2>
-<p>Nest is <a href="https://github.com/nestjs/nest/blob/master/LICENSE">MIT licensed</a>.</p>
+</li>
+</ul>
+<h3>Calculate Credit Score</h3>
+<ul>
+<li><strong>GET</strong> <code>/orders/:businessId/credit-score</code><ul>
+<li><strong>Description</strong>: Returns a credit score based on the business’s transaction history.</li>
+<li><strong>Response</strong>:<b>Example :</b><div><pre class="line-numbers"><code class="language-json">{
+  &quot;score&quot;: &quot;number&quot;
+}</code></pre></div></li>
+</ul>
+</li>
+</ul>
+<h3>External API Integration</h3>
+<ul>
+<li><strong>Description</strong>: Automatically sends each order to the tax authority’s API at <code>https://taxes.free.beeceptor.com/log-tax</code>.</li>
+<li><strong>Response</strong>: Logs the sales transaction to the external tax authority API.</li>
+<li><strong>Note</strong>: The external API is a mock server and does not require authentication.</li>
+<li><strong>Request Body</strong>:<b>Example :</b><div><pre class="line-numbers"><code class="language-json">{
+  &quot;businessId&quot;: &quot;string&quot;,
+  &quot;departmentId&quot;: &quot;string&quot;,
+  &quot;amount&quot;: &quot;decimal&quot;,
+  &quot;status&quot;: &quot;string&quot;
+}</code></pre></div></li>
+<li><strong>Response</strong>: Confirmation of the sales transaction log.</li>
+<li><strong>Note</strong>: The external API is a mock server and does not require authentication.</li>
+<li><strong>Response</strong>:<b>Example :</b><div><pre class="line-numbers"><code class="language-json">{
+  &quot;message&quot;: &quot;string&quot;
+}</code></pre></div></li>
+</ul>
+<h2>Application Documentation</h2>
+<b>Example :</b><div><pre class="line-numbers"><code class="language-none"># To generate and serve the documentation using Compodoc, follow these steps:
 
+# Generate the documentation
+$ npm run compodoc
+
+# Serve the documentation
+$ npm run compodoc:serve
+
+# Open the browser and navigate to http://localhost:8080</code></pre></div>
 
 
 

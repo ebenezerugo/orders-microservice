@@ -296,8 +296,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="73"
-                                    class="link-to-prism">src/modules/orders/orders.service.ts:73</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="87"
+                                    class="link-to-prism">src/modules/orders/orders.service.ts:87</a></div>
                         </td>
                     </tr>
 
@@ -454,8 +454,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="55"
-                                    class="link-to-prism">src/modules/orders/orders.service.ts:55</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="64"
+                                    class="link-to-prism">src/modules/orders/orders.service.ts:64</a></div>
                         </td>
                     </tr>
 
@@ -550,7 +550,7 @@
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable, Logger } from &#x27;@nestjs/common&#x27;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable, InternalServerErrorException, Logger } from &quot;@nestjs/common&quot;;
 import { InjectRepository } from &#x27;@nestjs/typeorm&#x27;;
 import { Repository } from &#x27;typeorm&#x27;;
 import { InjectModel } from &#x27;@nestjs/mongoose&#x27;;
@@ -585,18 +585,27 @@ export class OrdersService {
    * @returns The created order as a DTO.
    */
   async createOrder(createOrderDto: CreateOrderDto) {
-    const orderEntity &#x3D; this.orderRepository.create(createOrderDto);
-    const order &#x3D; await this.orderRepository.save(orderEntity);
-    await this.orderModel.create(createOrderDto);
-    this.taxService
-      .logTaxData(createOrderDto)
-      .then((response) &#x3D;&gt; {
-        this.logger.log(&#x27;Tax data logged&#x27;, response);
-      })
-      .catch((error) &#x3D;&gt; {
-        this.logger.error(&#x27;Error logging tax data&#x27;, error);
-      });
-    return OrderMapper.toDto(order);
+    const queryRunner &#x3D;
+      this.orderRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const orderEntity &#x3D; this.orderRepository.create(createOrderDto);
+      const order &#x3D; await queryRunner.manager.save(orderEntity);
+      await this.orderModel.create(createOrderDto);
+
+      await this.taxService.logTaxData(createOrderDto);
+      await queryRunner.commitTransaction();
+
+      return OrderMapper.toDto(order);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(&#x27;Error creating order&#x27;, error);
+      throw new InternalServerErrorException(&#x27;Error creating order&#x27;);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   /**
@@ -605,16 +614,21 @@ export class OrdersService {
    * @returns An object containing the total number of orders and the total amount.
    */
   async getOrderDetails(businessId: string) {
-    const totalOrders &#x3D; await this.orderRepository.count({
-      where: { businessId },
-    });
-    const totalAmount &#x3D; await this.orderRepository
-      .createQueryBuilder()
-      .select(&#x27;SUM(amount)&#x27;, &#x27;sum&#x27;)
-      .where(&#x27;business_id &#x3D; :businessId&#x27;, { businessId })
-      .getRawOne();
+    try {
+      const totalOrders &#x3D; await this.orderRepository.count({
+        where: { businessId },
+      });
+      const totalAmount &#x3D; await this.orderRepository
+        .createQueryBuilder()
+        .select(&#x27;SUM(amount)&#x27;, &#x27;sum&#x27;)
+        .where(&#x27;business_id &#x3D; :businessId&#x27;, { businessId })
+        .getRawOne();
 
-    return { totalOrders, totalAmount };
+      return { totalOrders, totalAmount };
+    } catch (error) {
+      this.logger.error(&#x27;Error retrieving order details&#x27;, error);
+      throw new InternalServerErrorException(&#x27;Error retrieving order details&#x27;);
+    }
   }
 
   /**
@@ -623,8 +637,13 @@ export class OrdersService {
    * @returns An object containing the credit score.
    */
   async calculateCreditScore(businessId: string) {
-    const orders &#x3D; await this.orderModel.find({ businessId }).exec();
-    return { score: Math.min(100, orders.length * 10) };
+    try {
+      const orders &#x3D; await this.orderModel.find({ businessId }).exec();
+      return { score: Math.min(100, orders.length * 10) };
+    } catch (error) {
+      this.logger.error(&#x27;Error calculating credit score&#x27;, error);
+      throw new InternalServerErrorException(&#x27;Error calculating credit score&#x27;);
+    }
   }
 }
 </code></pre>

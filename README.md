@@ -1,5 +1,18 @@
 
-## Inventory Management System
+# Inventory Management System
+
+## Sales Microservice
+
+The Sales Microservice is a dedicated service within the Inventory Management System that handles sales order management, business credit scoring, and tax compliance for registered businesses.
+
+---
+
+## Features
+- **Order Management**: Creates and stores orders from department heads in Postgres and MongoDB.
+- **Credit Score Calculation**: Calculates a credit score based on the business's transaction history.
+- **Tax Compliance**: Logs sales transactions to an external tax authority API for regulatory compliance.
+
+---
 
 
 ## Project setup
@@ -77,6 +90,69 @@ $ docker-compose up
 http://localhost:3000/api/v1.0/swagger
 
 ```
+
+## API Endpoints
+
+### Create Order
+
+- **POST** `/orders`
+    - **Description**: Registers a new order for a business.
+    - **Request Body**:
+      ```json
+      {
+        "businessId": "string",
+        "departmentId": "string",
+        "amount": "decimal",
+        "status": "string"
+      }
+      ```
+    - **Response**: Confirmation of order creation.
+
+### Retrieve Order Details
+
+- **GET** `/orders/:businessId/details`
+    - **Description**: Retrieves total order count and amount for a specified business.
+    - **Response**:
+      ```json
+      {
+        "totalOrders": "number",
+        "totalAmount": "decimal"
+      }
+      ```
+
+### Calculate Credit Score
+
+- **GET** `/orders/:businessId/credit-score`
+    - **Description**: Returns a credit score based on the business’s transaction history.
+    - **Response**:
+      ```json
+      {
+        "score": "number"
+      }
+      ```
+
+### External API Integration
+
+- **Description**: Automatically sends each order to the tax authority’s API at `https://taxes.free.beeceptor.com/log-tax`.
+- **Response**: Logs the sales transaction to the external tax authority API.
+- **Note**: The external API is a mock server and does not require authentication.
+- **Request Body**:
+  ```json
+  {
+    "businessId": "string",
+    "departmentId": "string",
+    "amount": "decimal",
+    "status": "string"
+  }
+  ```
+- **Response**: Confirmation of the sales transaction log.
+- **Note**: The external API is a mock server and does not require authentication.
+- **Response**:
+  ```json
+  {
+    "message": "string"
+  }
+  ```
 
 ## Application Documentation
 
