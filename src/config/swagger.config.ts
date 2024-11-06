@@ -1,8 +1,8 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { INestApplication } from '@nestjs/common';
 
-const title = 'FHA Payment Services API Documentation';
-const description = 'API documentation for fha payment service.';
+const title = 'Sales Microservice API Documentation';
+const description = 'API documentation for sales microservice.';
 
 /**
  * Setup swagger in the application
